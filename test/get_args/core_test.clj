@@ -44,12 +44,20 @@
 
   (fact "there can be long and short arguments with a value."
     (parse-args [:file ["f"] :protocol ["protocol"]] "-f test.txt --protocol ftp") => {:file "test.txt" :protocol "ftp"}
-    (parse-args [:file ["f"] :protocol ["protocol"]] "--protocol ftp -f test.txt") => {:file "test.txt" :protocol "ftp"}))
+    (parse-args [:file ["f"] :protocol ["protocol"]] "--protocol ftp -f test.txt") => {:file "test.txt" :protocol "ftp"})
 
-(fact "a short argument can have multiple values."
-  (parse-args [:file ["f"]] "-f test1.txt test2.txt") => {:file ["test1.txt" "test2.txt"]}
-  (parse-args [:file ["f"]] "-f test1.txt test2.txt test3.txt") => {:file ["test1.txt" "test2.txt" "test3.txt"]})
+  (fact "a short argument can have multiple values."
+    (parse-args [:file ["f"]] "-f test1.txt test2.txt") => {:file ["test1.txt" "test2.txt"]}
+    (parse-args [:file ["f"]] "-f test1.txt test2.txt test3.txt") => {:file ["test1.txt" "test2.txt" "test3.txt"]})
 
-(fact "a long argument can have multiple values."
-  (parse-args [:file ["file"]] "--file test1.txt test2.txt") => {:file ["test1.txt" "test2.txt"]}
-  (parse-args [:file ["file"]] "--file test1.txt test2.txt test3.txt") => {:file ["test1.txt" "test2.txt" "test3.txt"]})
+  (fact "a long argument can have multiple values."
+    (parse-args [:file ["file"]] "--file test1.txt test2.txt") => {:file ["test1.txt" "test2.txt"]}
+    (parse-args [:file ["file"]] "--file test1.txt test2.txt test3.txt") => {:file ["test1.txt" "test2.txt" "test3.txt"]})
+
+  (fact "a short argument can be required."
+    (parse-args [:verbose ["v"] {:required true} :debug ["d"]] "-d") => nil
+    (parse-args [:verbose ["v"] {:required true} :debug ["d"]] "-v -d") => {:verbose true :debug true})
+
+  (fact "a long argument can be required."
+    (parse-args [:verbose ["verbose"] {:required true} :debug ["debug"]] "--debug") => nil
+    (parse-args [:verbose ["verbose"] {:required true} :debug ["debug"]] "--debug --verbose") => {:verbose true :debug true}))
