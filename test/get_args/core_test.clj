@@ -60,4 +60,10 @@
 
   (fact "a long argument can be required."
     (parse-args [:verbose ["verbose"] {:required true} :debug ["debug"]] "--debug") => nil
-    (parse-args [:verbose ["verbose"] {:required true} :debug ["debug"]] "--debug --verbose") => {:verbose true :debug true}))
+    (parse-args [:verbose ["verbose"] {:required true} :debug ["debug"]] "--debug --verbose") => {:verbose true :debug true})
+
+  (fact "a short argument can be marked as a flag so it doesn't collect values."
+    (parse-args [:verbose ["v"] {:flag true}] "-v test.txt") => {:verbose true})
+
+  (fact "a long argument can be marked as a flag so it doesn't collect value."
+    (parse-args [:verbose ["verbose"] {:flag true}] "--verbose test.txt") => {:verbose true}))

@@ -9,18 +9,22 @@
           (get-arg-key [arg-alias]
             (ffirst (filter (fn [x] (contains? (set (:aliases (last x))) arg-alias)) args-spec)))
 
-          ;; Is the argument a flag?
-          (is-flag-arg? [results arg-key]
+          ;; Does the argument still have its default value.?
+          (is-default-value-arg? [results arg-key]
             (arg-key (:flag-args results)))
 
+          (is-flag-arg? [arg-key]
+            (:flag (arg-key args-spec)))
+          
           ;; Add a value for an argument.
           ;; A flag argument is replaced with an actual argument value.
           ;; After that the argument values become a vector of arguments.
           (process-arg-value [results arg-key new-value]
             (let [previous-value (arg-key (:results results))]
-              (cond (is-flag-arg? results arg-key) new-value
-                    (not (vector? previous-value)) [previous-value new-value]
-                    :else (conj previous-value new-value))))
+              (cond (and (not (is-flag-arg? arg-key)) (is-default-value-arg? results arg-key)) new-value
+                    (and (not (is-flag-arg? arg-key)) (not (vector? previous-value))) [previous-value new-value]
+                    (not (is-flag-arg? arg-key)) (conj previous-value new-value)
+                    :else true)))
 
           ;; Add an argument to the results map.
           (add-arg [results arg-alias arg-value]
