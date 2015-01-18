@@ -1,6 +1,6 @@
 (defproject get-args "0.1.0"
-  :description "Handles command line arguments."
-  :url ""
+  :description "Parses and validates command line arguments."
+  :url "https://github.com/JonathanHope/get-args"
 
   :license {:name "MIT License"
             :url "http://opensource.org/licenses/MIT"}
