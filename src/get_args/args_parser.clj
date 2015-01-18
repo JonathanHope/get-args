@@ -7,29 +7,46 @@
   
   (letfn [;; Get the key for an args alias.
           (get-arg-key [arg-alias]
-            (ffirst (filter (fn [x] (contains? (set (:aliases (last x))) arg-alias)) args-spec)))
+            (letfn [(arg-has-alias [x] (-> x
+                                           (last)
+                                           (:aliases)
+                                           (set)
+                                           (contains? arg-alias)))]
+              (->> args-spec
+                   (filter arg-has-alias)
+                   (ffirst))))
 
           ;; Does the argument still have its default value.?
           (is-default-value-arg? [results arg-key]
             (arg-key (:flag-args results)))
 
+          ;; Is the argument marked as a flag.
           (is-flag-arg? [arg-key]
             (:flag (arg-key args-spec)))
+
+          ;; Get the validator predicate for an argument.
+          (get-validate-fn [arg-key]
+            (:validate-fn (arg-key args-spec)))
           
           ;; Add a value for an argument.
-          ;; A flag argument is replaced with an actual argument value.
-          ;; After that the argument values become a vector of arguments.
           (process-arg-value [results arg-key new-value]
             (let [previous-value (arg-key (:results results))]
-              (cond (and (not (is-flag-arg? arg-key)) (is-default-value-arg? results arg-key)) new-value
-                    (and (not (is-flag-arg? arg-key)) (not (vector? previous-value))) [previous-value new-value]
+              (cond (and (not (is-flag-arg? arg-key))
+                         (is-default-value-arg? results arg-key)) new-value
+
+                    (and (not (is-flag-arg? arg-key))
+                         (not (vector? previous-value))) [previous-value new-value]
+
                     (not (is-flag-arg? arg-key)) (conj previous-value new-value)
+
                     :else true)))
 
           ;; Add an argument to the results map.
           (add-arg [results arg-alias arg-value]
             (let [arg-key (get-arg-key arg-alias)]
-              (if arg-key
+              (if (and arg-key
+                       (or (not (get-validate-fn arg-key))
+                           ((get-validate-fn arg-key) arg-value)))
                 (assoc-in results [:results] (assoc (:results results) arg-key (process-arg-value results arg-key arg-value)))
                 results)))
 
@@ -56,7 +73,8 @@
           (unmark-arg-flag [results value]
             (let [arg-key (get-arg-key value)]
               (if arg-key
-                (assoc-in results [:flag-args] (dissoc (:flag-args results) arg-key)) 
+                (assoc-in results [:flag-args]
+                          (dissoc (:flag-args results) arg-key)) 
                 results)))
           
           ;; Add an argument that doesn't have a value. The value is defaulted to true.

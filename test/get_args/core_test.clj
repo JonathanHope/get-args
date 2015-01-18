@@ -66,4 +66,12 @@
     (parse-args [:verbose ["v"] {:flag true}] "-v test.txt") => {:verbose true})
 
   (fact "a long argument can be marked as a flag so it doesn't collect value."
-    (parse-args [:verbose ["verbose"] {:flag true}] "--verbose test.txt") => {:verbose true}))
+    (parse-args [:verbose ["verbose"] {:flag true}] "--verbose test.txt") => {:verbose true})
+
+  (fact "a short argument can have a predicate that defined whether the provided value is valid or not."
+    (parse-args [:verbose ["v"] {:validate-fn (fn [x] false)}] "-v test.txt") => {}
+    (parse-args [:verbose ["v"] {:validate-fn (fn [x] true)}] "-v test.txt") => {:verbose "test.txt"})
+
+  (fact "a long argument can have a predicate that defined whether the provided value is valid or not."
+    (parse-args [:verbose ["verbose"] {:validate-fn (fn [x] false)}] "--verbose test.txt") => {}
+    (parse-args [:verbose ["verbose"] {:validate-fn (fn [x] true)}] "--verbose test.txt") => {:verbose "test.txt"}))
