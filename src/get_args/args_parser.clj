@@ -27,27 +27,30 @@
           ;; Get the validator predicate for an argument.
           (get-validate-fn [arg-key]
             (:validate-fn (arg-key args-spec)))
+
+          (get-parse-fn [arg-key]
+            (:parse-fn (arg-key args-spec)))
           
           ;; Add a value for an argument.
-          (process-arg-value [results arg-key new-value]
-            (let [previous-value (arg-key (:results results))]
+          (process-arg-value [results arg-key new-value is-default-value]
+            (let [previous-value (arg-key (:results results)) new-value-parsed (if (and (not is-default-value) (get-parse-fn arg-key)) ((get-parse-fn arg-key) new-value) new-value)]
               (cond (and (not (is-flag-arg? arg-key))
-                         (is-default-value-arg? results arg-key)) new-value
+                         (is-default-value-arg? results arg-key)) new-value-parsed
 
                     (and (not (is-flag-arg? arg-key))
-                         (not (vector? previous-value))) [previous-value new-value]
+                         (not (vector? previous-value))) [previous-value new-value-parsed]
 
-                    (not (is-flag-arg? arg-key)) (conj previous-value new-value)
+                    (not (is-flag-arg? arg-key)) (conj previous-value new-value-parsed)
 
                     :else true)))
 
           ;; Add an argument to the results map.
-          (add-arg [results arg-alias arg-value]
+          (add-arg [results arg-alias arg-value is-default-value]
             (let [arg-key (get-arg-key arg-alias)]
               (if (and arg-key
                        (or (not (get-validate-fn arg-key))
                            ((get-validate-fn arg-key) arg-value)))
-                (assoc-in results [:results] (assoc (:results results) arg-key (process-arg-value results arg-key arg-value)))
+                (assoc-in results [:results] (assoc (:results results) arg-key (process-arg-value results arg-key arg-value is-default-value)))
                 results)))
 
           ;; Add a character to the accumulated value so far.
@@ -63,14 +66,14 @@
             (assoc-in results [:accumulator] ""))
 
           ;; Mark a flag as one that has had the automatic arg flag added with it.
-          (mark-arg-flag [results value]
+          (mark-arg-default-value [results value]
             (let [arg-key (get-arg-key value)]
               (if arg-key
                 (assoc-in results [:flag-args] (assoc (:flag-args results) arg-key true)) 
                 results)))
           
           ;; Unmark a flag as one that has had the automatic arg flag added with it.
-          (unmark-arg-flag [results value]
+          (unmark-arg-default-value [results value]
             (let [arg-key (get-arg-key value)]
               (if arg-key
                 (assoc-in results [:flag-args]
@@ -80,24 +83,24 @@
           ;; Add an argument that doesn't have a value. The value is defaulted to true.
           (add-flag-arg [results value & _]
             (-> results
-                (mark-arg-flag value)
-                (add-arg value true)
+                (mark-arg-default-value value)
+                (add-arg value true true)
                 (set-last-arg value)))
 
           ;; Add a long argument from the accumulator that doesn't have a value.
           ;; The value is defaulted to true.
           (add-long-flag-arg [results value & _]
             (-> results
-                (mark-arg-flag (:accumulator results))
-                (add-arg (:accumulator results) true)
+                (mark-arg-default-value (:accumulator results))
+                (add-arg (:accumulator results) true true)
                 (set-last-arg (:accumulator results))
                 (clear-accumulator)))
 
           ;; Add the accumulated value to the last argument added to the results.
           (add-arg-value [results value & _]
             (-> results
-                (add-arg (:last-arg results) (:accumulator results))
-                (unmark-arg-flag (:last-arg results))
+                (add-arg (:last-arg results) (:accumulator results) false)
+                (unmark-arg-default-value (:last-arg results))
                 (clear-accumulator)))
 
           ;; Convert something to a string.

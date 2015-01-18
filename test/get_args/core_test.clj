@@ -74,4 +74,10 @@
 
   (fact "a long argument can have a predicate that defined whether the provided value is valid or not."
     (parse-args [:verbose ["verbose"] {:validate-fn (fn [x] false)}] "--verbose test.txt") => {}
-    (parse-args [:verbose ["verbose"] {:validate-fn (fn [x] true)}] "--verbose test.txt") => {:verbose "test.txt"}))
+    (parse-args [:verbose ["verbose"] {:validate-fn (fn [x] true)}] "--verbose test.txt") => {:verbose "test.txt"})
+
+  (fact "a short argument can have a custom parse function."
+    (parse-args [:verbose ["v"] {:parse-fn (fn [x] (Integer. x))}] "-v 5") => {:verbose 5})
+
+  (fact "a long argument can have a custom parse function."
+    (parse-args [:verbose ["verbose"] {:parse-fn (fn [x] (Integer. x))}] "--verbose 5") => {:verbose 5}))
