@@ -1,4 +1,4 @@
-(defproject get-args "0.1.0"
+(defproject get-args "0.1.1"
   :description "Parses and validates command line arguments."
   :url "https://github.com/JonathanHope/get-args"
 
@@ -9,4 +9,7 @@
                  [reduce-fsm "0.1.3"]
                  [midje "1.6.3"]]
 
-  :plugins [[lein-midje "3.1.3"]])
+  :plugins [[lein-midje "3.1.3"]]
+
+  :scm {:name "git"
+        :url "https://github.com/JonathanHope/get-args"})
