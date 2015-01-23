@@ -8,6 +8,11 @@ Include the following dependency in your project.clj file:
 
         :dependencies [[get-args "0.1.0"]]
 
+You may see a compile error related to match. There is a bug in the core.match library that a dependency of this project relies on. In that case include the followinf dependencies in your project.clj file:
+
+        :dependencies [[get-args "0.1.0"]
+                       [org.clojure/core.match "0.3.0-alpha4"]]
+
 ## Usage
 
 First define a spec:
