@@ -8,14 +8,22 @@ Include the following dependency in your project.clj file:
 
         :dependencies [[get-args "0.1.0"]]
 
-You may see a compile error related to match. There is a bug in the core.match library that a dependency of this project relies on. In that case include the followinf dependencies in your project.clj file:
+You may see a compile error related to match. There is a bug in the core.match library that a dependency of this project relies on. In that case include the following dependencies in your project.clj file:
 
         :dependencies [[get-args "0.1.0"]
                        [org.clojure/core.match "0.3.0-alpha4"]]
 
 ## Usage
 
-First define a spec:
+The 10000 foot view:
+
+    (require [get-args.core :as ga])
+
+    (defn -main
+      [& args]
+      (ga/parse-args [:verbose ["v" "verbose"]] args))
+
+In a litle more detail. First define a spec:
 
         [:verbose ["v" "verbose"] :inputs ["i" "inputs"] :output ["o" "output"]]
 
@@ -59,14 +67,6 @@ An argument with a validate predicate will not acummulate any values that don't 
         [:file ["f"] {:validate-fn (fn [x] false)} :verbose ["v"]]
         "-f test.txt -v"
         ;; => {:verbose true}
-
-## Usage
-
-        (require [get-args.core :as ga])
-
-        (defn -main
-          [& args]
-          (ga/parse-args [:verbose ["v" "verbose"]] args))
 
 ## License
 
